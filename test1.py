@@ -1,4 +1,6 @@
 __author__ = 'WangZhe'
+
+
 def test_exceptions():
     age = -1
     while age <= 0:
@@ -12,23 +14,37 @@ def test_exceptions():
     return
 
 
-def sum_a(a, b, biteme = False):
+def sum_a(a, b, biteme=False):
     if biteme:
         print('biteme:', biteme)
     else:
         return a + b
 
-def sum_b (a, b, *, biteme = False):
+
+def sum_b(a, b, *, biteme=False):
     if biteme:
         print('biteme', biteme)
     else:
         return a + b
+
+
 a = [2]
 
+
 def main():
-    # a = 1
+    a1 = [2]
     test_namespace()
 
+
 def test_namespace():
-    a.append(1)
+    a.append(1)  # is ok when a is global variable
+    # a += [1]a
     print(a)
+
+
+main()
+
+if __name__ == "__main__":
+    print('execute directly')
+
+import random
