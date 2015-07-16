@@ -30,10 +30,13 @@ def sum_b(a, b, *, biteme=False):
 
 a = [2]
 
+def f(x,y,z = 0):
+    print('x,y,z: ',x,y,z)
 
 def main():
     a1 = [2]
-    test_namespace()
+    # test_namespace()
+    f(0,1)
 
 
 def test_namespace():
@@ -42,9 +45,13 @@ def test_namespace():
     print(a)
 
 
-main()
+
 
 if __name__ == "__main__":
+    main()
     print('execute directly')
+
+
+
 
 import random
