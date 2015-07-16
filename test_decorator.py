@@ -35,14 +35,6 @@ class Coordinate:
         return '(' + str(self.x) + ', ' + str(self.y) + ')'
 
 
-def add(x, y):
-    return Coordinate(x.x + y.x, x.y + y.y)
-
-
-def sub(x, y):
-    return Coordinate(x.x - y.x, x.y - y.y)
-
-
 def limit_bound(x):
     return x if x > 0 else 0
 
@@ -56,10 +48,18 @@ def boundary_check(func):
         return Coordinate(limit_bound(result.x), limit_bound(result.y))
     return checker
 
+@boundary_check
+def add(x, y):
+    return Coordinate(x.x + y.x, x.y + y.y)
+# same as add = boundary_check(add)
+
+@boundary_check
+def sub(x, y):
+    return Coordinate(x.x - y.x, x.y - y.y)
+# same as sub = boundary_check(sub)
+
 
 def test_decorator(add, sub):
-    add = boundary_check(add)
-    sub = boundary_check(sub)
     p1 = Coordinate(100, 200)
     p2 = Coordinate(300, 200)
     p3 = Coordinate(-100, -100)
