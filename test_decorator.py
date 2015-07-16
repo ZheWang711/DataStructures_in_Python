@@ -66,7 +66,6 @@ def test_decorator(add, sub):
     print(sub(p1, p2))
     print(add(p1, p3))
 
-
 if __name__ == "__main__":
     test_decorator(add, sub)
 
