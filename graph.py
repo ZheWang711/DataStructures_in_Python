@@ -77,7 +77,7 @@ class Edge:
         return hash((self._origin, self._destination))
 
     def __str__(self):
-        return self._origin,  self._destination , self._element
+        return '(' +  str(self._origin) + ',' + str(self._destination) + ',' + str(self._element) +')'
 
 
 class Graph:
@@ -126,7 +126,7 @@ class Graph:
 
     def get_edge(self, u, v):
         """return the edge from u to v, None if not adjacent"""
-        return self._outgoing[u].get(v, default=None)
+        return self._outgoing[u].get(v)
 
     def degree(self, v, outgoing=True):
         """
@@ -170,12 +170,12 @@ class Graph:
         Delete and return the vertex v, also delete its related egdes
         """
         del self._outgoing[v]   # TODO: check memory leak ??
-        for secondary_map in self._outgoing:
+        for secondary_map in self._outgoing.values():
             if secondary_map.get(v) is not None:
                 del secondary_map[v]
         if self.is_directed():
             del self._incoming[v]   # TODO: check memory leak ??
-            for secondary_map in self ._incoming:
+            for secondary_map in self ._incoming.values():
                 if secondary_map.get(v) is not None:
                     del secondary_map[v]
 
@@ -185,16 +185,24 @@ class Graph:
         del self._incoming[v][u]
         del self._outgoing[u][v]
 
-    def traverse(self):
+    def display(self):
         print("outgoing")
-        for secondary_map in self._outgoing:
-            print(secondary_map, end=': ')
-            for edges in secondary_map.values():
-                print(edges, end='||||')
+        for origin in self._outgoing.keys():
+            print(origin, end=': ')
+            for destination in self._outgoing[origin].keys():
+                print(self._outgoing[origin][destination], end=' || ')
+            print()
+        if self.is_directed():
+            print("incoming")
+            for destination in self._incoming.keys():
+                print(destination, end=': ')
+                for origin in self._incoming[destination].keys():
+                    print(self._incoming[destination][origin], end=' || ')
+                print()
 
-def main():
+if __name__ == '__main__':
     # undirected
-    g = Graph()
+    g = Graph(directed=True)
     u = g.insert_vertex('u')
     v = g.insert_vertex('v')
     w = g.insert_vertex('w')
@@ -203,7 +211,10 @@ def main():
     g.insert_edge(v, w, 'f')
     g.insert_edge(u, w, 'g')
     g.insert_edge(w, z, 'h')
-    g.traverse()
+    g.display()
+    #g.remove_edge(u, w)
+    #g.display()
+    print("remove vertex w")
+    g.remove_vertex(w)
+    g.display()
     print(0)
-
-main()
