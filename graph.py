@@ -1,4 +1,6 @@
 __author__ = 'WangZhe'
+import random
+import copy
 """
 The Graph ADT
 * Vertex: light weight object that store an arbitrary element, provided by the user
@@ -77,7 +79,7 @@ class Edge:
         return hash((self._origin, self._destination))
 
     def __str__(self):
-        return '(' +  str(self._origin) + ',' + str(self._destination) + ',' + str(self._element) +')'
+        return '(' + str(self._origin) + ',' + str(self._destination) + ',' + str(self._element) + ')'
 
 
 class Graph:
@@ -114,7 +116,7 @@ class Graph:
 
     def edge_count(self):
         """Return the number of edges in the graph."""
-        total = sum(len(self._outgoing[v]) for v in self._outgoing)
+        total = sum(sum(self._outgoing[v][k]._element for k in self._outgoing[v].keys()) for v in self._outgoing)
         return total if self.is_directed() else total // 2
 
     def edges(self):
@@ -155,7 +157,7 @@ class Graph:
             self._incoming[u] = {}
         return u
 
-    def insert_edge(self, u, v, x):
+    def insert_edge(self, u, v, x=1):
         """
         Insert a new edge (u, v) with element x, and return the new edge
         """
@@ -200,21 +202,77 @@ class Graph:
                     print(self._incoming[destination][origin], end=' || ')
                 print()
 
+    def insert_multiple_edges(self, u, v, x=1):
+        """insert a multiple edge, supports only undirected graphs"""
+        if not self._outgoing[u].get(v):
+            self.insert_edge(u, v, x)
+        else:
+            self._outgoing[u][v]._element += x
+            self._incoming[v][u]._element = self._outgoing[u][v]._element
+
+    def remove_multiple_edge(self, u, v, x=1):
+        if self._outgoing[u][v]._element == x:
+            self.remove_edge(u, v)
+        else:
+            self._outgoing[u][v]._element -= x
+            self._incoming[v][u]._element = self._outgoing[u][v]._element
+
+    def merge_vertex(self, u, v):
+        newvertex = self.insert_vertex(u._element + v._element)
+        for dest, edge in self._outgoing[u].items():
+            if dest == v:
+                continue
+            self.insert_multiple_edges(newvertex, dest, edge._element)
+        for dest, edge in self._outgoing[v].items():
+            if dest == u:
+                continue
+            self.insert_multiple_edges(newvertex, dest, edge._element)
+        self.remove_vertex(u)
+        self.remove_vertex(v)
+        return newvertex
+
+    def random_contraction_algorithm(self):
+        """
+        Minimum Cut problem
+        due to Karger, earlier 90s
+        Reference: https://d396qusza40orc.cloudfront.net/algo1/slides/algo-karger-algorithm_typed.pdf
+        """
+        if self.vertex_count() == 2:
+            return self.edge_count()
+        times = self.vertex_count() ** 3
+        min = [float("inf")]
+        V = [Vertex('pos1'), Vertex('pos2')]
+        for i in range(times):
+            tmp = copy.deepcopy(self)
+            vertices_list = list(tmp.vertices())
+            while tmp.vertex_count() > 2:
+                v1 = random.choice(vertices_list)
+                vertices_list.remove(v1)
+                v2 = random.choice(vertices_list)
+                vertices_list.remove(v2)
+                v3 = tmp.merge_vertex(v1, v2)
+                vertices_list.append(v3)
+            if tmp.edge_count() < min[0]:
+                min[0] = tmp.edge_count()
+                index = 0
+                for vertex in tmp.vertices():
+                    V[index] = vertex
+                    index += 1
+        return min[0], V
+
 if __name__ == '__main__':
     # undirected
-    g = Graph(directed=True)
+    g = Graph(directed=False)
     u = g.insert_vertex('u')
     v = g.insert_vertex('v')
     w = g.insert_vertex('w')
     z = g.insert_vertex('z')
-    g.insert_edge(u, v, 'e')
-    g.insert_edge(v, w, 'f')
-    g.insert_edge(u, w, 'g')
-    g.insert_edge(w, z, 'h')
-    g.display()
-    #g.remove_edge(u, w)
-    #g.display()
-    print("remove vertex w")
-    g.remove_vertex(w)
-    g.display()
-    print(0)
+    g.insert_multiple_edges(u, v)
+    g.insert_multiple_edges(v, w)
+    g.insert_multiple_edges(u, w)
+    g.insert_multiple_edges(w, z)
+    g.insert_multiple_edges(w, z)
+    count, V = g.random_contraction_algorithm()
+    print(count)
+    for i in V:
+        print(i._element)
