@@ -49,7 +49,7 @@ class Vertex:
         return hash(id(self))
 
     def __str__(self):
-        return self._element
+        return str(self._element)
 
 
 # --------------------------nested Edge class-----------------------
@@ -95,6 +95,7 @@ class Graph:
 
         Graph is directed if optional parameter is set to True
         """
+        self._vertex = {}  # a map from vertex._element to vertex object
         self._outgoing = {}
         # only create second map for directed graph; use alias for undirected
         self._incoming = {} if directed else self._outgoing
@@ -152,6 +153,7 @@ class Graph:
         Insert a vertex u whose element is x, and return the new vertex
         """
         u = Vertex(x)
+        self._vertex[x] = u
         self._outgoing[u] = {}
         if self.is_directed():
             self._incoming[u] = {}
@@ -171,6 +173,7 @@ class Graph:
         """
         Delete and return the vertex v, also delete its related egdes
         """
+        del self._vertex[v._element]
         del self._outgoing[v]   # TODO: check memory leak ??
         for secondary_map in self._outgoing.values():
             if secondary_map.get(v) is not None:
@@ -222,6 +225,7 @@ class Graph:
             self._incoming[v][u]._element = self._outgoing[u][v]._element
 
     def merge_vertex(self, u, v):
+        # newvertex = self.insert_vertex(u._element + v._element)
         newvertex = self.insert_vertex(u._element + v._element)
         for dest, edge in self._outgoing[u].items():
             if dest == v:
@@ -233,6 +237,7 @@ class Graph:
             self.insert_multiple_edges(newvertex, dest, edge._element)
         self.remove_vertex(u)
         self.remove_vertex(v)
+        newvertex._element = u._element
         return newvertex
 
     def random_contraction_algorithm(self):
@@ -264,34 +269,28 @@ class Graph:
                     index += 1
         return min[0], V
 
-if __name__ == '__main__':
-    # undirected
-    graph = Graph(directed=False)
-    a = graph.insert_vertex('a')
-    b = graph.insert_vertex('b')
-    c = graph.insert_vertex('c')
-    d = graph.insert_vertex('d')
-    e = graph.insert_vertex('e')
-    f = graph.insert_vertex('f')
-    g = graph.insert_vertex('g')
-    h = graph.insert_vertex('h')
+    def get_vertex(self, x):
+        return self._vertex[x]
 
-    graph.insert_multiple_edges(a, b)
-    graph.insert_multiple_edges(a, e)
-    graph.insert_multiple_edges(b, f)
-    graph.insert_multiple_edges(e, f)
-    graph.insert_multiple_edges(b, c)
-    graph.insert_multiple_edges(f, g)
-    graph.insert_multiple_edges(c, d)
-    graph.insert_multiple_edges(c, g)
-    graph.insert_multiple_edges(g, h)
-    graph.insert_multiple_edges(d, h)
-    graph.insert_multiple_edges(a, f)
-    graph.insert_multiple_edges(e, b)
-    graph.insert_multiple_edges(c, h)
-    graph.insert_multiple_edges(d, g)
 
-    count, V = graph.random_contraction_algorithm()
-    print(count)
-    for i in V:
-        print(i._element)
+def main():
+    f = open('kargerMinCut.txt', 'r')
+    input_list = []
+    for line in f:
+        input_list.append([int(s) for s in line.split()])
+    f.close()
+    g = Graph()
+    for i in range(len(input_list)):
+        g.insert_vertex(i + 1)
+    for vertex in g.vertices():
+        for dest in input_list[vertex._element - 1]:
+            if dest == vertex._element:
+                continue
+            else:
+                if g.get_edge(vertex, g.get_vertex(dest)) is not None:
+                    continue
+                g.insert_multiple_edges(vertex, g.get_vertex(dest))
+    result, V = g.random_contraction_algorithm()
+    print(result)
+
+main()
