@@ -116,7 +116,7 @@ class Graph:
 
     def edge_count(self):
         """Return the number of edges in the graph."""
-        total = sum(sum(self._outgoing[v][k]._element for k in self._outgoing[v].keys()) for v in self._outgoing)
+        total = sum(len(self._outgoing[v]) for v in self._outgoing)
         return total if self.is_directed() else total // 2
 
     def edges(self):
@@ -202,6 +202,10 @@ class Graph:
                     print(self._incoming[destination][origin], end=' || ')
                 print()
 
+    def edge_sum(self):
+        total = sum(sum(self._outgoing[v][k]._element for k in self._outgoing[v].keys()) for v in self._outgoing)
+        return total//2 if not self.is_directed() else total
+
     def insert_multiple_edges(self, u, v, x=1):
         """insert a multiple edge, supports only undirected graphs"""
         if not self._outgoing[u].get(v):
@@ -238,7 +242,7 @@ class Graph:
         Reference: https://d396qusza40orc.cloudfront.net/algo1/slides/algo-karger-algorithm_typed.pdf
         """
         if self.vertex_count() == 2:
-            return self.edge_count()
+            return self.edge_sum()
         times = self.vertex_count() ** 3
         min = [float("inf")]
         V = [Vertex('pos1'), Vertex('pos2')]
@@ -252,8 +256,8 @@ class Graph:
                 vertices_list.remove(v2)
                 v3 = tmp.merge_vertex(v1, v2)
                 vertices_list.append(v3)
-            if tmp.edge_count() < min[0]:
-                min[0] = tmp.edge_count()
+            if tmp.edge_sum() < min[0]:
+                min[0] = tmp.edge_sum()
                 index = 0
                 for vertex in tmp.vertices():
                     V[index] = vertex
@@ -262,17 +266,32 @@ class Graph:
 
 if __name__ == '__main__':
     # undirected
-    g = Graph(directed=False)
-    u = g.insert_vertex('u')
-    v = g.insert_vertex('v')
-    w = g.insert_vertex('w')
-    z = g.insert_vertex('z')
-    g.insert_multiple_edges(u, v)
-    g.insert_multiple_edges(v, w)
-    g.insert_multiple_edges(u, w)
-    g.insert_multiple_edges(w, z)
-    g.insert_multiple_edges(w, z)
-    count, V = g.random_contraction_algorithm()
+    graph = Graph(directed=False)
+    a = graph.insert_vertex('a')
+    b = graph.insert_vertex('b')
+    c = graph.insert_vertex('c')
+    d = graph.insert_vertex('d')
+    e = graph.insert_vertex('e')
+    f = graph.insert_vertex('f')
+    g = graph.insert_vertex('g')
+    h = graph.insert_vertex('h')
+
+    graph.insert_multiple_edges(a, b)
+    graph.insert_multiple_edges(a, e)
+    graph.insert_multiple_edges(b, f)
+    graph.insert_multiple_edges(e, f)
+    graph.insert_multiple_edges(b, c)
+    graph.insert_multiple_edges(f, g)
+    graph.insert_multiple_edges(c, d)
+    graph.insert_multiple_edges(c, g)
+    graph.insert_multiple_edges(g, h)
+    graph.insert_multiple_edges(d, h)
+    graph.insert_multiple_edges(a, f)
+    graph.insert_multiple_edges(e, b)
+    graph.insert_multiple_edges(c, h)
+    graph.insert_multiple_edges(d, g)
+
+    count, V = graph.random_contraction_algorithm()
     print(count)
     for i in V:
         print(i._element)
