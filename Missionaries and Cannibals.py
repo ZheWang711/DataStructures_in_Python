@@ -46,8 +46,6 @@ def carry_out(s, trans):
         d = s.d + trans.g
         e = 1
         behav = s.behav + [trans.code]
-        if not ((a >= b >= 0 or a == 0 and b >= 0) and (c >= d >= 0 or c == 0 and d >= 0)):
-            return None
     else:
         a = s.a + trans.f
         b = s.b + trans.g
@@ -55,10 +53,12 @@ def carry_out(s, trans):
         d = s.d - trans.g
         e = 0
         behav = s.behav + [trans.code]
-        if not ((a >= b >= 0 or a == 0 and b >= 0) and (c >= d >= 0 or c == 0 and d >= 0)):
-            return None
-    new_s = state(a, b, c, d, e, behav, s.n + 1)
-    return new_s
+
+    if not ((a >= b >= 0 or a == 0 and b >= 0) and (c >= d >= 0 or c == 0 and d >= 0)):
+        return None
+    else:
+        new_s = state(a, b, c, d, e, behav, s.n + 1)
+        return new_s
 
 def generate_action(n):
     result = {}
@@ -74,6 +74,7 @@ def final(s, n):
     if s.a == 0 and s.b == 0 and s.c == n and s.d == n:
         return True
     return False
+
 
 def list_find(l, item):
     for i in l:
