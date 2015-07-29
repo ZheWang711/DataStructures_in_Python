@@ -97,14 +97,14 @@ class Graph:
         l = set()
         for i in self._incoming[id].keys():
             l.add(i)
-        yield l
+        return l
 
     def all_post_course_id(self, id):
         """return the set of id of post courses"""
         l = set()
         for i in self._outgoing[id].keys():
             l.add(i)
-        yield l
+        return l
 
     def all_topology(self, id, path, indegrees_copy, min_found, max_course):
         """
