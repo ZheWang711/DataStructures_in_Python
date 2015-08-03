@@ -1,6 +1,13 @@
 __author__ = 'WangZhe'
 
+
 class UVa725:
+    """
+    input integer n, to output all possible expressions
+    in the form of abcde/fghij = n, where characters a to j
+    corresponds with a complete permutation of 0 to 9 exactly
+     ( There might be a precursor 0 in fghij, and 2 <= n <= 79 ).
+    """
 
     def legal(self, a, b):
         buffer_string = str(a)
@@ -29,6 +36,30 @@ class UVa725:
                 else:
                     print("{0} / 0{1} = {2}".format(fghij, abcde, n))
 
+
+class Permutation:
+    def dictionary_order_print(self, A):
+        A = sorted(A)   # assign a new sequence, so that not to change the value of original sequence A
+        self._dictionary_order_print(A, 0)
+
+    def _dictionary_order_print(self, A, current):
+        if current == len(A) - 1:
+            print(A)
+        else:
+            for i in range(current, len(A)):
+                # the elements in the range of [0, current - 1] is fixed
+                # the first elements we need to consider about rearranging is at index [current]
+                tmp = A[i]
+                A.remove(tmp)
+                A.insert(current, tmp)  # current is the first position allowed to rearranging
+                self._dictionary_order_print(A, current + 1)
+                A.remove(tmp)
+                A.insert(i, tmp)
+
+
+
 if __name__ == "__main__":
-    sample = UVa725()
-    sample.division(62)
+    sample = Permutation()
+    A = [1, 2, 3]
+    sample.dictionary_order_print(A)
+    print(A)
