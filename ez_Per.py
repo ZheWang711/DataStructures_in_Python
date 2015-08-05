@@ -6,6 +6,7 @@ def permutation(input_list):
     for i in range(len(input_list)):
         S.append(input_list[i])
         A.append(None)
+    S.sort()
     _permutation(A, 0, S)
 
 def _permutation(A, cur, S):
@@ -21,4 +22,4 @@ def _permutation(A, cur, S):
                 A[cur] = None
 
 if __name__ =="__main__":
-    permutation([1,1,3])
+    permutation([1,3,1])
