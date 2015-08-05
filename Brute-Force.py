@@ -134,7 +134,40 @@ class PrimeRingProblem:
                     A.insert(i, V[cur])
                     V[cur] = None
 
+class KryptonFactor:
+
+    def __init__(self, L, k):
+        import string
+        self.D = {i: string.ascii_lowercase[i] for i in range(26)}
+        self.count = 0
+        self._KryptonFactor(L, k, 0, [])
+
+    def _legal(self, A, elem):
+        A.append(elem)
+        for offset in range(1, len(A) // 2 + 1):
+            flag = False     # assume exist, try to find one violation
+            for i in range(offset):
+                if A[len(A) - 1 - offset - i] != A[len(A) - 1 - i]:
+                    flag = True     # not exist
+            if not flag:    # if one exist, return, else continue finding
+                del A[len(A) - 1]
+                return False
+        del A[len(A) - 1]
+        return True
+
+    def _KryptonFactor(self, L, k, cur, A):
+        for i in range(L):
+            if self._legal(A, self.D[i]):
+                A.append(self.D[i])
+                self.count += 1
+                if self.count == k:
+                    print(''.join(A))
+                elif self.count < k:
+                    # print(self.count, A)
+                    self._KryptonFactor(L, k, cur + 1, A)
+                del(A[len(A) - 1])
 
 
 if __name__ == "__main__":
-    sample = PrimeRingProblem(6)
+    sample1 = KryptonFactor(3, 7)
+    sample2 = KryptonFactor(3, 30)
