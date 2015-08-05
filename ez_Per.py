@@ -13,11 +13,12 @@ def _permutation(A, cur, S):
         print(A)
     else:
         for i in range(len(S)):
-            A[cur] = S[i]
-            del S[i]
-            _permutation(A, cur + 1, S)
-            S.insert(i, A[cur])
-            A[cur] = None
+            if i == 0 or S[i] != S[i-1]:
+                A[cur] = S[i]
+                del S[i]
+                _permutation(A, cur + 1, S)
+                S.insert(i, A[cur])
+                A[cur] = None
 
 if __name__ =="__main__":
-    permutation([1,2,3])
+    permutation([1,1,3])
