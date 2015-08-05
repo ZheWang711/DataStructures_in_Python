@@ -1,5 +1,5 @@
 __author__ = 'WangZhe'
-
+import math
 
 class UVa725:
     """
@@ -43,7 +43,7 @@ class Permutation:
         self._dictionary_order_print(A, 0)
 
     def _dictionary_order_print(self, A, current):
-        if current == len(A):
+        if current == len(A) - 1:
             print(A)
         else:
             for i in range(current, len(A)):
@@ -62,9 +62,79 @@ class Permutation:
                     A.insert(i, tmp)
 
 
+class SubsetGeneration:
+
+    def _find(self, A, element):
+        i = 0
+        while i < len(A):
+            if A[i] == element:
+                return i
+            i += 1
+        raise ValueError("element {0} not found".format(element))
+
+    def _increment_contruct(self, A, cur, B):
+        # print("深度", cur)
+        for i in range(cur):
+            print(A[i], end=' ')
+        print()
+
+        low = 0 if not cur else self._find(B, A[cur - 1]) + 1
+        for i in range(low, len(B)):
+            A[cur] = B[i]
+            self._increment_construct(A, cur + 1, B)
+            A[cur] = None
+
+    def increment_construct(self, B):
+        A = [None for i in range(len(B))]
+        self._increment_construct(A, 0, B)
+
+    def bit_vector(self, A):
+        V = [None for i in range(len(A))]
+        self._bit_vector(A, V, 0)
+
+    def _bit_vector(self, A, V, cur):
+        if cur == len(V):
+            for i in range(len(V)):
+                if V[i] == 1:
+                    print(A[i], end='')
+            print()
+        else:
+            V[cur] = False
+            self._bit_vector(A, V, cur + 1)
+            V[cur] = True
+            self._bit_vector(A, V, cur + 1)
+            V[cur] = None
+
+
+class PrimeRingProblem:
+    def __init__(self, n):
+        A = [i for i in range(2, n + 1)]
+        V = [None for i in range(n)]
+        V[0] = 1
+        self.generate_ring(V, A, 1)
+
+    def is_prime(self, n):
+        for i in range(2, int(math.sqrt(n)) + 2):
+            if n % i == 0:
+                return False
+        return True
+
+    def generate_ring(self, V, A, cur):
+        if cur == len(V) - 1:
+            if self.is_prime(V[0] + A[0]) and self.is_prime(V[cur - 1] + A[0]):
+                V[cur] = A[0]
+                print(V)
+                V[cur] = None
+        else:
+            for i in range(len(A)):
+                if self.is_prime(A[i] + V[cur - 1]):
+                    V[cur] = A[i]
+                    del A[i]
+                    self.generate_ring(V, A, cur + 1)
+                    A.insert(i, V[cur])
+                    V[cur] = None
+
 
 
 if __name__ == "__main__":
-    sample = Permutation()
-    A = [1, 1, 1, 2]
-    sample.dictionary_order_print(A)
+    sample = PrimeRingProblem(6)
