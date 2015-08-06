@@ -1,5 +1,6 @@
 __author__ = 'WangZhe'
 import math
+import copy
 
 class UVa725:
     """
@@ -167,7 +168,72 @@ class KryptonFactor:
                     self._KryptonFactor(L, k, cur + 1, A)
                 del(A[len(A) - 1])
 
+class Bandwidth:
+
+    def __init__(self):
+        self.Ver = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+        self.Adj = {
+            'A': ['F', 'B'],
+            'B': ['G', 'C'],
+            'D': ['G', 'C'],
+            'F': ['A', 'G', 'H'],
+            'E': ['H', 'D']
+        }
+        self.incoming = {
+            'A': ['F'],
+            'B': ['A'],
+            'C': ['B', 'D'],
+            'D': ['E'],
+            'F': ['A'],
+            'G': ['B', 'D', 'F'],
+            'H': ['F', 'E']
+        }
+        self.found_min_result = float("inf")
+        A = [None for i in range(len(self.Ver))]    # sequence generating
+        B = {i: None for i in self.Ver}             # bandwidth
+        I = {i: None for i in self.Ver}             # index A[i] = 'X' --> I['X'] = i
+        n = len(self.Ver)
+        self._bindwidth(n, 0, A, B, I)
+
+    def _bindwidth(self, n, cur, A, B, I):
+        if cur == n:
+            tmp = max(B.values())
+            if tmp < self.found_min_result:
+                self.found_min_result = tmp
+                print(tmp, ''.join(A))
+                #print(B)
+
+        else:
+            for i in range(len(self.Ver)):
+                #--------------------- cut -------------------------------------------------#
+                if len(self.Adj.get(self.Ver[i], [])) >= self.found_min_result:
+                    continue
+                copy_B = copy.deepcopy(B)
+                tmp = self.Ver[i]
+                A[cur] = tmp
+                I[tmp] = cur
+                del self.Ver[i]
+                #----------------------------- updating array B ----------------------------#
+                for v in self.incoming.get(tmp, ''):
+                    if v != '' and I[v] is not None:
+                        B[v] = I[tmp] - I[v] if I[tmp] - I[v] > B[v] else B[v]
+                #----------------------------- calculating B[A[cur]] -----------------------#
+                max_node = 0
+                for v in self.Adj.get(tmp, ''):
+                    if v != '' and I[v] is not None:
+                        max_node = I[tmp] - I[v] if I[tmp] - I[v] > max_node else max_node
+                B[tmp] = max_node
+                if max_node < self.found_min_result:
+                    self._bindwidth(n, cur + 1, A, B, I)
+                #----------------------------- recover global variable ---------------------#
+                B = copy_B
+                A[cur] = None
+                self.Ver.insert(i, tmp)
+                I[tmp] = None
+
+
+
+
 
 if __name__ == "__main__":
-    sample1 = KryptonFactor(3, 7)
-    sample2 = KryptonFactor(3, 30)
+    sample1 = Bandwidth()
