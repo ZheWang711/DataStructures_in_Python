@@ -1,5 +1,8 @@
 __author__ = 'WangZhe'
-
+"""
+reference: https://uva.onlinejudge.org/index.php?option=onlinejudge&page=show_problem&problem=4100
+testing case from: http://blog.csdn.net/kun768/article/details/43272449
+"""
 
 def _is_equal(self, other):
         if self is None and other is None:
