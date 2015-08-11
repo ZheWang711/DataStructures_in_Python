@@ -50,6 +50,8 @@ class Graph:
         self.incoming = {}
         self.ver_cnt = 0
         self.edge_cnt = 0
+        self.current_label = None
+        self.label = {}
 
     def insert_ver(self, Vertex):
         self.ver[Vertex.id] = Vertex
@@ -78,17 +80,16 @@ class Graph:
     def BFS(self, source):  # source is the initial vertex (reference)
         Q = queue.Queue()
         Q.put(source)
+        source.explore()
         while not Q.empty():
             head = Q.get()
-            if not head.is_explored:
-                head.explore()
-                list_to_explore = list(self.outgoing[head].keys()) if self.outgoing[head].keys() is not None else []
-                random.shuffle(list_to_explore)
-                for i in list_to_explore:
-                    if i.mark == 0:     # unexplored
-                        i.level = head.level + 1
-                        Q.put(i)
-                        i.mark = -1     # in queue
+            list_to_explore = list(self.outgoing[head].keys()) if self.outgoing[head].keys() is not None else []
+            random.shuffle(list_to_explore)
+            for i in list_to_explore:
+                if not i.is_explored:
+                    i.level = head.level + 1
+                    i.explore()
+                    Q.put(i)
 
 
     def Ver(self, id):
@@ -110,28 +111,50 @@ class Graph:
                 cnt += 1
 
     def DFS(self, source):
+        source.no_level_explore()
         S = [source]    # nodes to be explored
         while len(S) != 0:
             vertex = S.pop()
-            if not vertex.is_explored:
-                vertex.no_level_explore()
-                neighbour_list = list(self.outgoing[vertex].keys()) if self.outgoing[vertex].keys() is not None else []
-                random.shuffle(neighbour_list)
-                for i in self.outgoing[vertex].keys():
-                    if i.mark == 0:
-                        S.append(i)
-                        i.mark = -1
+            neighbour_list = list(self.outgoing[vertex].keys()) if self.outgoing[vertex].keys() is not None else []
+            random.shuffle(neighbour_list)
+            for i in self.outgoing[vertex].keys():
+                if not i.is_explored:
+                    i.no_level_explore()
+                    S.append(i)
+
 
     def DFS_r(self, source):
-        source.explore()
+        source.no_level_explore()
         for i in self.outgoing[source].keys():
             if not i.is_explored:
                 self.DFS_r(i)
+
+    def DFS_topo(self, start):
+        start.is_explored = True
+        for i in self.outgoing[start].keys():
+            if not i.is_explored:
+                self.DFS_topo(i)
+        self.label[start] = self.current_label
+        self.current_label -= 1
+
+
 
     def recover(self):
         for i in self.ver:
             self.Ver(i).is_explored = False
             self.Ver(i).mark = 0
+            self.Ver(i).level = 0
+            self.current_label = len(self.outgoing) - 1
+            self.label = {v: None for v in self.outgoing.keys()}
+
+    def topological_sort(self):
+        self.recover()
+        self.current_label = len(list(self.outgoing)) - 1
+        to_explore = list(self.outgoing.keys())
+        random.shuffle(to_explore)
+        for i in to_explore:
+            if not i.is_explored:
+                self.DFS_topo(i)
 
 
 
@@ -140,21 +163,19 @@ if __name__ == "__main__":
     g = Graph()
     for i in range(1, 11):
         g.insert_ver(Node(id=i))
-    g.insert_undirected_edge(1, 3)
-    g.insert_undirected_edge(1, 5)
-    g.insert_undirected_edge(3, 5)
-    g.insert_undirected_edge(5, 7)
-    g.insert_undirected_edge(5, 9)
-    g.insert_undirected_edge(2, 4)
-    g.insert_undirected_edge(6, 8)
-    g.insert_undirected_edge(8, 10)
-    g.insert_undirected_edge(6, 10)
-    g.DFS_r(g.Ver(1))
-    g.recover()
-    g.DFS_r(g.Ver(1))
-    g.recover()
-    g.connecting_compunents()
-    print('second time')
-    g.recover()
-    g.connecting_compunents()
-    #g.connecting_compunents()
+
+    g.insert_edge_by_Ver_id(1, 3)
+    g.insert_edge_by_Ver_id(1, 5)
+    g.insert_edge_by_Ver_id(3, 5)
+    g.insert_edge_by_Ver_id(5, 7)
+    g.insert_edge_by_Ver_id(5, 9)
+    g.insert_edge_by_Ver_id(4, 2)
+    g.insert_edge_by_Ver_id(6, 8)
+    g.insert_edge_by_Ver_id(8, 10)
+    g.insert_edge_by_Ver_id(6, 10)
+
+    g.topological_sort()
+    topoed_array = list((key, value) for (key, value) in g.label.items())
+    topoed_array = sorted(topoed_array, key=lambda x: x[1])
+    for i in topoed_array:
+        print(i[0])
