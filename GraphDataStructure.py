@@ -2,15 +2,17 @@ __author__ = 'WangZhe'
 import queue
 import random
 
+
 class Node:
-    __slots__ = 'element', 'is_explored', 'id', 'level', 'mark'
+    __slots__ = 'element', 'is_explored', 'id', 'level', 'mark', 'leader'
 
     def __init__(self, is_explored=False, element=None, id=None, mark=None):
         self.is_explored = is_explored
         self.element = element
         self.id = id
         self.level = 0
-        self.mark = 0 # 0 unexplored, 1 explored, -1 in queue/stack
+        self.mark = 0       # 0 unexplored, 1 explored, -1 in queue/stack
+        self.leader = None  # computing SSC, leader vertex
 
     def __str__(self):
         return "vertex {0}: {1}".format(self.id, self.element)
@@ -27,6 +29,7 @@ class Node:
         self.is_explored = True
         self.mark = 1
         print("exploring {0}".format(self.id))
+
 
 class Edge:
     __slots__ = 'v1', 'v2', 'element'
@@ -52,6 +55,9 @@ class Graph:
         self.edge_cnt = 0
         self.current_label = None
         self.label = {}
+        # Computing SCC
+        self.scc_order = []
+        self.finish_time = -1
 
     def insert_ver(self, Vertex):
         self.ver[Vertex.id] = Vertex
@@ -91,7 +97,6 @@ class Graph:
                     i.explore()
                     Q.put(i)
 
-
     def Ver(self, id):
         return self.ver[id]
 
@@ -102,7 +107,7 @@ class Graph:
         self.insert_edge(self.ver[id1], self.ver[id2], element)
         self.insert_edge(self.ver[id2], self.ver[id1], element)
 
-    def connecting_compunents(self):
+    def connecting_components(self):
         cnt = 1
         for i in self.outgoing.keys():
             if not i.is_explored:
@@ -111,8 +116,11 @@ class Graph:
                 cnt += 1
 
     def DFS(self, source):
+        """
+        Depth first search using stack
+        """
         source.no_level_explore()
-        S = [source]    # nodes to be explored
+        S = [source]    # outer layer explored vertices
         while len(S) != 0:
             vertex = S.pop()
             neighbour_list = list(self.outgoing[vertex].keys()) if self.outgoing[vertex].keys() is not None else []
@@ -122,14 +130,19 @@ class Graph:
                     i.no_level_explore()
                     S.append(i)
 
-
     def DFS_r(self, source):
+        """
+        Depth first search recursive implementation
+        """
         source.no_level_explore()
         for i in self.outgoing[source].keys():
             if not i.is_explored:
                 self.DFS_r(i)
 
     def DFS_topo(self, start):
+        """
+        Depth first search for topological sorting. ( editing self.label )
+        """
         start.is_explored = True
         for i in self.outgoing[start].keys():
             if not i.is_explored:
@@ -137,10 +150,36 @@ class Graph:
         self.label[start] = self.current_label
         self.current_label -= 1
 
+    def reverse_DFS(self, start):
+        """
+        Depth first search for computing SCCs, which searches on reversed version of the graph
+        """
+        if start.is_explored:
+            return
+        else:
+            start.is_explored = True
+            for each_vertex in self.incoming[start].keys():
+                if not each_vertex.is_explored:
+                    self.reverse_DFS(each_vertex)
+            self.scc_order[self.ver_cnt - self.finish_time - 1] = start.id
+            self.finish_time += 1
 
+    def DFS_SCC(self, start, current_leader):
+        """
+        Depth first search for computing SCCs. ( assigning leaders )
+        """
+        if start.is_explored:
+            return
+        else:
+            start.is_explored = True
+            start.leader = current_leader
+            for each_vertex in self.outgoing[start].keys():
+                if not each_vertex.is_explored:
+                    self.DFS_SCC(each_vertex, current_leader)
 
     def recover(self):
         for i in self.ver:
+            self.Ver(i).leader = None
             self.Ver(i).is_explored = False
             self.Ver(i).mark = 0
             self.Ver(i).level = 0
@@ -156,26 +195,29 @@ class Graph:
             if not i.is_explored:
                 self.DFS_topo(i)
 
-
+    def strong_connecting_components(self):
+        self.scc_order = [None for i in range(self.ver_cnt)]    # scc_order[order] = id
+        self.finish_time = 0                                    # order = ver_cnt - finish_time
+        for i in self.outgoing.keys():
+            self.reverse_DFS(i)
+        self.recover()
+        for i in self.scc_order:
+            self.DFS_SCC(self.Ver(i), self.Ver(i))
+        for i in self.outgoing.keys():
+            print("{0} in group {1}".format(i.id, i.leader.id))
 
 
 if __name__ == "__main__":
     g = Graph()
-    for i in range(1, 11):
+    for i in range(1, 12):
         g.insert_ver(Node(id=i))
+    edges = [
+        (1, 3), (3, 2), (2, 1), (3, 5), (3, 9),
+        (1, 4), (4, 6), (4, 10),
+        (6, 8), (8, 10), (10, 6),
+        (5, 10), (7, 8), (5, 7), (7, 11), (11, 9), (9, 5), (5, 11)
 
-    g.insert_edge_by_Ver_id(1, 3)
-    g.insert_edge_by_Ver_id(1, 5)
-    g.insert_edge_by_Ver_id(3, 5)
-    g.insert_edge_by_Ver_id(5, 7)
-    g.insert_edge_by_Ver_id(5, 9)
-    g.insert_edge_by_Ver_id(4, 2)
-    g.insert_edge_by_Ver_id(6, 8)
-    g.insert_edge_by_Ver_id(8, 10)
-    g.insert_edge_by_Ver_id(6, 10)
-
-    g.topological_sort()
-    topoed_array = list((key, value) for (key, value) in g.label.items())
-    topoed_array = sorted(topoed_array, key=lambda x: x[1])
-    for i in topoed_array:
-        print(i[0])
+    ]
+    for i, j in edges:
+        g.insert_edge_by_Ver_id(i, j)
+    g.strong_connecting_components()
