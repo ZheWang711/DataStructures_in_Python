@@ -1,5 +1,5 @@
 __author__ = 'WangZhe'
-
+import heap
 
 class Node:
     __slots__ = 'id', 'shortest_distance', 'explored'
@@ -43,28 +43,30 @@ class Graph:
         self.incoming[id2][id1] = tmp
 
     def dijkstra(self, s):
-        X = [s.id]     # explored vertices id
 
         A = [float('inf') for i in range(len(self.vertices) + 1)]        # computed shortest path
-        A[s.id] = 0
 
         in_X = [False for i in range(len(self.vertices) + 1)]   # in_X[id] = True if id is in X
-        in_X[s.id] = True
-        num_of_vertices = len(self.vertices)
 
-        while len(X) < num_of_vertices:
-            tmp1 = None
-            tmp2 = None  # temporary vertex 2
-            min_value = float('inf')
-            for i in X:
-                for j in self.outgoing[i].keys():
-                    if not in_X[j] and A[i] + self.outgoing[i][j].weight < min_value:
-                        min_value = self.outgoing[i][j].weight + A[i]
-                        tmp1 = i
-                        tmp2 = j
-            in_X[tmp2] = True
-            A[tmp2] = min_value
-            X.append(tmp2)
+        # initialize heap:
+        H = heap.Heap()
+        for i in self.vertices.values():
+            if i == s:
+                H.insert(heap.Data(0, i))
+            else:
+                H.insert(heap.Data(float('inf'), i))
+
+        for i in range(len(self.vertices)):
+            tmp_data = H.extract_min()
+            distance, ver = tmp_data.key, tmp_data.value
+            in_X[ver.id] = True
+            A[ver.id] = distance
+            for i in self.outgoing[ver.id].keys():
+                if not in_X[i]:
+                    tmp_neighbour = H.remove_obj(self.vertices[i])
+                    new_distance = min(tmp_neighbour.key, self.outgoing[ver.id][i].weight + distance)
+                    H.insert(heap.Data(new_distance, self.vertices[i]))
+                    A[i] = new_distance
         return A[1:]
 
 
