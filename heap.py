@@ -3,14 +3,14 @@ __author__ = 'WangZhe'
 
 class Data:
     def __hash__(self):
-        return hash((self.key, self.value))
+        return hash(self.value)
 
     def __init__(self, k, value):
         self.key = k
         self.value = value
 
     def __eq__(self, other):
-        return self.key == other.key and self.value == other.value
+        return self.value == other.value
 
     def __str__(self):
         return 'key {0}, value {1}'.format(self.key, self.value)
@@ -54,33 +54,60 @@ class Heap:
         self.A.append(obj)
         self.time += 1
         self.map[obj] = self.time
-        self.pos.append(self.time)
+
+        self.pos.append(len(self.A) - 1)
+        # shouldn't be self.pos.append(self.time), since removing elements would cause
+        # self.A become shorter thus time != current index.
+        # we can say that time == current index iff there only exist insert operation
+
         self._bubble_up(len(self.A) - 1)
 
+
     def extract_min(self):
-        tmp = self.A[1]
-        self.A[1] = self.A[len(self.A) - 1]
-        del self.A[len(self.A) - 1]
+        if len(self.A) - 1 > 1:
+            tmp = self.A[1]
+            self.A[1] = self.A[len(self.A) - 1]
+            del self.A[len(self.A) - 1]
 
-        self.pos[self.map[tmp]] = None
-        del self.map[tmp]
-        self.pos[self.map[self.A[1]]] = 1
+            self.pos[self.map[tmp]] = None
+            del self.map[tmp]
+            self.pos[self.map[self.A[1]]] = 1
 
-        self._bubble_down(1)
+            self._bubble_down(1)
+            return tmp
 
-    def remove_obj(self, obj):
+        elif len(self.A) - 1 == 1:
+            tmp = self.A[1]
+            del self.A[1]
+            self.pos[self.map[tmp]] = None
+            del self.map[tmp]
+            return tmp
+
+        else:
+            raise ValueError('invariant broken: len(self.A) -1 < 1 ')
+
+
+    def remove_obj(self, obj_value):
+        obj = Data(None, obj_value)
         time_stamp = self.map[obj]
         position = self.pos[time_stamp]
+        if position != len(self.A) - 1:
 
-        tmp = self.A[position]
-        self.A[position] = self.A[len(self.A) - 1]
-        del self.A[len(self.A) - 1]
-        self.pos[self.map[tmp]] = None
-        del self.map[tmp]
-        self.pos[self.map[self.A[position]]] = position
+            tmp = self.A[position]
+            self.A[position] = self.A[len(self.A) - 1]
+            del self.A[len(self.A) - 1]
+            self.pos[self.map[tmp]] = None
+            del self.map[tmp]
+            self.pos[self.map[self.A[position]]] = position
 
-        self._bubble_down(position)
-
+            self._bubble_down(position)
+            return tmp
+        else:
+            tmp = self.A[len(self.A) - 1]
+            del self.A[len(self.A) - 1]
+            self.pos[self.map[tmp]] = None
+            del self.map[tmp]
+            return tmp
 
 
 
@@ -89,5 +116,5 @@ if __name__ == '__main__':
     for i in range(10):
         H.insert(Data(i, str(i)))
     print(H.insert(Data(2, 'A')))
-    H.remove_obj(Data(1, '1'))
+    H.remove_obj('1')
     a = 1
