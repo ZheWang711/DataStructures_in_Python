@@ -1,16 +1,24 @@
 __author__ = 'WangZhe'
-import heap
+import random
+import sys
+
+import heap_advanced
+
+sys.setrecursionlimit(150)
 
 class Node:
-    __slots__ = 'id', 'shortest_distance', 'explored'
+    __slots__ = 'id', 'explored'
 
     def __init__(self, id):
         self.id = id
-        self.shortest_distance = float('inf')
+        # self.shortest_distance = float('inf')
         self.explored = False
 
     def __str__(self):
-        return 'id: {0}, distance: {1}, explored: {2}'.format(self.id, self.shortest_distance, self.explored)
+        return 'id: {0}, explored: {1}'.format(self.id, self.explored)
+
+    def __hash__(self):
+        return hash(self.id)
 
 
 class Edge:
@@ -49,23 +57,26 @@ class Graph:
         in_X = [False for i in range(len(self.vertices) + 1)]   # in_X[id] = True if id is in X
 
         # initialize heap:
-        H = heap.Heap()
-        for i in self.vertices.values():
+        H = heap_advanced.Heap()
+        L = [i for i in self.vertices.values()]
+        random.shuffle(L)
+        for i in L:
             if i == s:
-                H.insert(heap.Data(0, i))
+                H.insert(0, i)
             else:
-                H.insert(heap.Data(float('inf'), i))
+                H.insert(float('inf'), i)
 
         for i in range(len(self.vertices)):
             tmp_data = H.extract_min()
-            distance, ver = tmp_data.key, tmp_data.value
+            distance, ver = tmp_data.key, tmp_data.element
             in_X[ver.id] = True
+            ver.explored = True # no usage
             A[ver.id] = distance
             for i in self.outgoing[ver.id].keys():
                 if not in_X[i]:
-                    tmp_neighbour = H.remove_obj(self.vertices[i])
+                    tmp_neighbour = H.remove(self.vertices[i])
                     new_distance = min(tmp_neighbour.key, self.outgoing[ver.id][i].weight + distance)
-                    H.insert(heap.Data(new_distance, self.vertices[i]))
+                    H.insert(new_distance, self.vertices[i])
                     A[i] = new_distance
         return A[1:]
 
@@ -75,6 +86,7 @@ class Solution:
         distances = self.construct(length=200, filename='dijkstraData.txt')
         for i in [7, 37, 59, 82, 99, 115, 133, 165, 188, 197]:
            print(distances[i-1], end=',')
+        #print(distances)
 
 
     def construct(self, length, filename):
