@@ -26,8 +26,8 @@ class Node:
 
     def __str__(self):
         father_key = self.father.key if self.father is not None else None
-        return 'key: {0}, x: {1}, element: {2}, father key {3}'.format(self.key, self.x, self.element, father_key)
-
+        # return 'key: {0}, x: {1}, element: {2}, father key {3}'.format(self.key, self.x, self.element, father_key)
+        return 'key: {0}, element: {1}, father key {2}'.format(self.key, self.element, father_key)
 
 class BinarySearchTree:
     def __init__(self):
@@ -70,19 +70,43 @@ class BinarySearchTree:
         if root.left is None and root.right is None:
             return None
         if root.left is None and root.right is not None:
+            root.right.father = root.father
             return root.right
         if root.right is None and root.left is not None:
+            root.left.father = root.father
             return root.left
         if root.left is not None and root.right is not None:
             tmp_pt = root.left
             while tmp_pt.right is not None:
                 tmp_pt = tmp_pt.right
-            tmp_pt.father.right = tmp_pt.left
-            tmp_pt.left = root.left
-            tmp_pt.right = root.right
-            tmp_pt.left.father = tmp_pt
-            tmp_pt.right.father = tmp_pt
+            if tmp_pt.father == root:
+                tmp_pt.right = root.right
+                tmp_pt.father = root.father
+                root.right.father = tmp_pt
+            else:
+                if tmp_pt.left is not None:
+                    tmp_pt.left.father = tmp_pt.father
+                tmp_pt.father.right = tmp_pt.left
+                tmp_pt.left = root.left
+                tmp_pt.right = root.right
+                root.left.father = tmp_pt
+                root.right.father = tmp_pt
+                tmp_pt.father = root.father
             return tmp_pt
+
+    def search(self, target_key):
+        return self._search(target_key, self.root)
+
+    def _search(self, target_key, root):
+        """target key must exist in the BST"""
+        if target_key == root.key:
+            return root
+        elif target_key <= root.key and root.left is not None:
+            return self._search(target_key, root.left)
+        elif target_key > root.key and root.right is not None:
+            return self._search(target_key, root.right)
+        else:
+            raise ValueError('target {0} not exist in BST'.format(target_key))
 
     def display(self, root, level):
         if root is not None:
