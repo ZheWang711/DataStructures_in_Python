@@ -79,10 +79,16 @@ class BinarySearchTree:
             while tmp_pt.right is not None:
                 tmp_pt = tmp_pt.right
             if tmp_pt.father == root:
+                tmp_pt.x = root.x - 1
                 tmp_pt.right = root.right
                 tmp_pt.father = root.father
                 root.right.father = tmp_pt
             else:
+                tmp_ancestor = tmp_pt.father
+                while tmp_ancestor != root:
+                    tmp_ancestor.x -= 1
+                    tmp_ancestor = tmp_ancestor.father
+                tmp_pt.x = root.x - 1
                 if tmp_pt.left is not None:
                     tmp_pt.left.father = tmp_pt.father
                 tmp_pt.father.right = tmp_pt.left
